@@ -25,6 +25,7 @@ public class Server {
 
     private static ServerSocket server = null;
     private static int connections = 0;
+    private static final Logger logger = Logger.getLogger(Worker.class.getName());
 
     /**
      * @param args the command line arguments
@@ -33,7 +34,7 @@ public class Server {
         try {
             //Get the port form a property file for the socket.
             server = new ServerSocket(Integer.parseInt(ResourceBundle.getBundle("service.Config").getString("PORT")));
-            System.out.println("Waiting for the connection");
+            logger.info("Waiting for the connection");
 
             //Calls the method waitClose that creates a thread that is in charge of clossing the server.
             waitClose();
