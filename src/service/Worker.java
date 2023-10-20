@@ -14,7 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import message.Message;
 import message.ResponseRequest;
-import service.Server;
+
 
 
 /**
@@ -82,9 +82,10 @@ public class Worker extends Thread {
             try {
                 //Writes the response
                 write.writeObject(responseRequest);
-                //Close ObjectOutputStream and ObjectImputStream
+                //Close ObjectOutputStream, ObjectImputStream and the socket
                 read.close();
                 write.close();
+                client.close();
                 //Calls the method to decrease the connections count
                 Server.closeWorker();
             } catch (IOException ex) {
