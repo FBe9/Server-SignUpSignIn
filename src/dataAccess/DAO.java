@@ -137,12 +137,127 @@ public class DAO implements Signable {
         return user;
     }
 
+    /*
+    private Connection con;
+    private PreparedStatement stmt;
+    private Pool connection = new Pool();
+    private ResultSet rs;
+     */
     @Override
     public User signIn(User user) throws ServerErrorException, LoginCredentialException, DatabaseErrorException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final String SEARCHUSER = "SELECT login, password FROM public.res_users WHERE (login = ? and password = ?)";
+        final String USEREXISTS = "SELECT name FROM public.res_partner WHERE partner_id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
 
+        try {
+
+            stmt = con.prepareStatement(SEARCHUSER);
+            stmt.setString(1, user.getEmail());
+            stmt.setString(2, user.getPassword());
+            rs = stmt.executeQuery();
+            
+            if(rs.next()){
+                user.setEmail(rs.getString("email"));
+                
+                Privilege privilege = null;
+                for(Privilege a : Privilege.values()){
+                    if(a.ordinal() == rs.getInt("privilege")){
+                        privilege = a;
+                    }
+                }
+                user.setPrivilege(privilege);
+                
+                
+            } else {
+                throw new LoginCredentialException("Incorrect Sign in.");
+            }
+
+        } catch (SQLException ex) {
+            throw new ServerErrorException(ex.getMessage());
+        }
+
+        return user;
     }
 
+    /*
+    @Override
+    public User logIn(User user) throws IncorrectLoginException, ServerException, UnknownTypeException {
+
+        ResultSet rs = null;
+        User loginUser = user;
+
+        con = pool.getConnection();
+
+        try {
+
+            stmt = con.prepareStatement(SEARCHUser);
+            stmt.setString(1, loginUser.getLogin());
+            stmt.setString(2, loginUser.getPassword());
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                loginUser.setId(rs.getInt("id"));
+                loginUser.setEmail(rs.getString("email"));
+                loginUser.setFullName(rs.getString("fullName"));
+                loginUser.setLastPasswordChange(rs.getTimestamp("lastPasswordChange"));
+
+                UserPrivilege userPrivilege = null;
+                for (UserPrivilege a : UserPrivilege.values()) {
+                    if (a.ordinal() == rs.getInt("userPrivilege")) {
+                        userPrivilege = a;
+                    }
+                }
+                loginUser.setPrivilege(userPrivilege);
+
+                UserStatus userStatus = null;
+                for (UserStatus a : UserStatus.values()) {
+                    if (a.ordinal() == rs.getInt("userStatus")) {
+                        userStatus = a;
+                    }
+                }
+                loginUser.setStatus(userStatus);
+
+            } else {
+                throw new IncorrectLoginException("Incorrect login");
+            }
+            // una vez comprobado de que exista insertamos el login
+
+            stmt2 = con.prepareCall(INSERTLogin);
+            stmt2.setString(1, loginUser.getLogin());
+            stmt2.execute();
+
+            stmt2.close();
+            stmt.close();
+
+            pool.returnConnection(con); // returns the conection to the pool
+
+        } catch (SQLException ex) {
+            Logger.getLogger(ServerImplementation.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ServerException(ex.getMessage());
+        }
+
+        return loginUser;
+    }
+    
+    private Pool pool;
+    private Connection con = null;
+    private ConnectionOpenClose conOpCl;
+    private PreparedStatement stmt;
+    private PreparedStatement stmt2;
+
+    private final String SEARCHUser = "SELECT * from retologinlogout.user where login = ? and userPassword = ?";
+    private final String UserEXISTS = "SELECT * from retologinlogout.user where login = ?";
+    private final String INSERTLogin = "{CALL insertLogin(?)}";
+    private final String CREATEUserSQL = "{CALL createUser(?,?,?,?,?,?)}";
+
+    private static final ResourceBundle CONFIG = ResourceBundle.getBundle("config.config");
+    private static final int MAXIMUM_USERS = Integer.parseInt(CONFIG.getString("MAXUSERS"));
+
+    
+    public ServerImplementation() {
+        this.pool = Pool.getPool();
+        this.conOpCl = new ConnectionOpenClose();
+    }
+     */
     class localUserInfo implements UserInfo {
 
         String passwd;
