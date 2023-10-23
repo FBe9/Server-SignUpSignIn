@@ -1,9 +1,16 @@
 package dataAccess;
 
+import interfaces.Signable;
+
 /**
+ * A factory class to create instance of Signable interface.
+ * 
  *
- * @author alexs
+ * @author Irati
  */
 public class SignableFactory {
-    
+    public static synchronized Signable getSignable(){
+        //Returns the DAO implementation
+        return new DAO();
+    }
 }
