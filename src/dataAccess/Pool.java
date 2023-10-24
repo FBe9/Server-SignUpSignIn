@@ -3,7 +3,6 @@ package dataAccess;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import com.jcraft.jsch.UserInfo;
 import exceptions.ServerErrorException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,9 +22,8 @@ import java.util.logging.Logger;
 public class Pool {
 
     private ResourceBundle configFile;
-    //private String url;
-    private String user;
-    private String pass;
+    private String db_user, ssh_user;
+    private String db_pass, ssh_pass;
     Stack<Connection> connections = new Stack<>();
     private static final Logger logger = Logger.getLogger(Pool.class.getName());
     Session session = null;
@@ -36,8 +34,8 @@ public class Pool {
     public Pool() {
 
         configFile = ResourceBundle.getBundle("config.Config");
-        user = configFile.getString("USERNAME");
-        pass = configFile.getString("PASSWORD");
+        db_user = configFile.getString("DB_USER");
+        db_pass = configFile.getString("DB_PASSWORD");
 
     }
 
@@ -51,34 +49,20 @@ public class Pool {
      */
     public Connection takeConnection() throws ServerErrorException {
         Connection con = null;
-        // For SSH session(s)
-        int assigned_port;
-        String remote_host_1 = configFile.getString("REMOTE_HOST_1");
-        String remote_host_2 = configFile.getString("REMOTE_HOST_2");
-        Integer postgresql_port = Integer.parseInt(configFile.getString("POSTGRESQL_PORT"));
-        Integer ssh_port = Integer.parseInt(configFile.getString("SSH_PORT"));
+        
+        // For SSH sessions
+        
+        int assigned_port = openSSHConnection();
 
         //Checks if the stack is empty
-        if (connections.isEmpty()) {
+        if (connections.isEmpty() && assigned_port != 0) {
             try {
-                // Open SSH session
-                session = new JSch().getSession(user, remote_host_1, ssh_port);
-                session.setPassword(pass);
-                localUserInfo lui = new localUserInfo();
-                session.setUserInfo(lui);
-                session.setConfig("StrictHostKeyChecking", "no");
-                session.setConfig("Compression", "yes");
-                session.connect();
-                assigned_port = session.setPortForwardingL(postgresql_port, remote_host_2, postgresql_port);
-                // URL with assigned SSH port
+                // DB URL with assigned SSH port
                 StringBuilder url = new StringBuilder(configFile.getString("URL"));
                 url.append(assigned_port).append(configFile.getString("DB"));
-
                 //Creates a new connection
-                con = DriverManager.getConnection(url.toString(), user, pass);
+                con = DriverManager.getConnection(url.toString(), db_user, db_pass);
             } catch (SQLException ex) {
-                throw new ServerErrorException();
-            } catch (JSchException ex) {
                 throw new ServerErrorException();
             }
         } else {
@@ -126,32 +110,39 @@ public class Pool {
         }
     }
 
-    // User info for SSH sessions
-    class localUserInfo implements UserInfo {
-
-        String passwd;
-
-        public String getPassword() {
-            return passwd;
+    /**
+     * Creates an SSH connection to the postgres DB.
+     * 
+     * @return the assigned port during the port forwarding.
+     * @throws ServerErrorException if any errors have occurred.
+     */
+    private int openSSHConnection() throws ServerErrorException{
+        // Setup for the ssh user and password
+        ssh_user = configFile.getString("SSH_USER");
+        ssh_pass = configFile.getString("SSH_PASSWORD");
+        // IPs for remote host and the remote host with port forwarding.
+        String remote_host_1 = configFile.getString("REMOTE_HOST_1");
+        String remote_host_2 = configFile.getString("REMOTE_HOST_2");
+        // Database port
+        Integer postgresql_port = Integer.parseInt(configFile.getString("POSTGRESQL_PORT"));
+        // SSH port
+        Integer ssh_port = Integer.parseInt(configFile.getString("SSH_PORT"));
+        int assigned_port;
+        
+        try {
+            // Open SSH session
+            session = new JSch().getSession(ssh_user, remote_host_1, ssh_port);
+            session.setPassword(ssh_pass);
+            // Doesn't check if host is already known
+            session.setConfig("StrictHostKeyChecking", "no");
+            // Initialize connection
+            session.connect();
+            // Set port forwarding to the postgresql machine
+            assigned_port = session.setPortForwardingL(postgresql_port, remote_host_2, postgresql_port);
+        } catch (JSchException ex) {
+            throw new ServerErrorException();
         }
-
-        public boolean promptYesNo(String str) {
-            return true;
-        }
-
-        public String getPassphrase() {
-            return null;
-        }
-
-        public boolean promptPassphrase(String message) {
-            return true;
-        }
-
-        public boolean promptPassword(String message) {
-            return true;
-        }
-
-        public void showMessage(String message) {
-        }
+        // Returns the assigned port.
+        return assigned_port;
     }
 }
