@@ -24,8 +24,12 @@ public class DAO implements Signable {
 
     private Connection con;
     private PreparedStatement stmt;
-    private Pool connection = new Pool();
+    private Pool connection;
     private ResultSet rs;
+
+    public DAO(Pool pool) {
+        this.connection = pool;
+    }
 
     /**
      * Connects to DB via a connection taken from the Pool and inserts all the

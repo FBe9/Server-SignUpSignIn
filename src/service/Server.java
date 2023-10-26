@@ -1,5 +1,6 @@
 package service;
 
+import dataAccess.Pool;
 import dataAccess.SignableFactory;
 import exceptions.ServerMaxCapacityException;
 import interfaces.Signable;
@@ -26,6 +27,7 @@ public class Server {
     private static ServerSocket server = null;
     private static int connections = 0;
     private static final Logger logger = Logger.getLogger(Worker.class.getName());
+    private static Pool pool = new Pool();
 
     /**
      * @param args the command line arguments
@@ -62,7 +64,7 @@ public class Server {
         //Gets from a property file the maximun connections
         if (connections <= Integer.parseInt(ResourceBundle.getBundle("config.Config").getString("MAX_CONNECTIONS"))) {
             //Get a signable
-            Signable signable = (Signable) SignableFactory.getSignable();
+            Signable signable = (Signable) SignableFactory.getSignable(pool);
             //Initialize the worker
             Worker worker = new Worker(client, signable);
             worker.start();
@@ -70,22 +72,7 @@ public class Server {
             connections++;
 
         } else {
-            //If the maximun capacity has been reached. Seeds a exception
-            try {
-                throw new ServerMaxCapacityException();
-            } catch (ServerMaxCapacityException ex) {
-                try {
-                    //Gets an ObjectOutputStream to write.
-                    ObjectOutputStream write = new ObjectOutputStream(client.getOutputStream());
-                    //Creates a responde for the client.
-                    ResponseRequest response = new ResponseRequest(null, Message.SERVER_CAPACITY_ERROR);
-                    //Sends the response to the client.
-                    write.writeObject(response);
-
-                } catch (IOException ex1) {
-                    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex1);
-                }
-            }
+            maxConnections(client);
         }
 
     }
@@ -93,7 +80,7 @@ public class Server {
     /**
      * Decreases the count of active connections.
      */
-    public static void closeWorker() {
+    public static synchronized void closeWorker() {
         //Decrease the connections' counter
         connections--;
     }
@@ -106,4 +93,21 @@ public class Server {
         close.start();
     }
 
+    public static void maxConnections(Socket client) {
+        //Gets an ObjectOutputStream to write.
+        ObjectOutputStream write = null;
+        try {
+            write = new ObjectOutputStream(client.getOutputStream());
+        } catch (IOException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //Creates a responde for the client.
+        ResponseRequest response = new ResponseRequest(null, Message.SERVER_CAPACITY_ERROR);
+        try {
+            //Sends the response to the client.
+            write.writeObject(response);
+        } catch (IOException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }
