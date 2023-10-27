@@ -21,7 +21,7 @@ public class Pool {
     private ResourceBundle configFile;
     private String db_user;
     private String db_pass;
-    Stack<Connection> connections = new Stack<>();
+    private static Stack<Connection> connections = new Stack<>();
     private static final Logger logger = Logger.getLogger(Pool.class.getName());
 
     /**
