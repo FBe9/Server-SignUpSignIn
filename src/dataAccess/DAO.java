@@ -24,8 +24,12 @@ public class DAO implements Signable {
 
     private Connection con;
     private PreparedStatement stmt;
-    private Pool connection = new Pool();
+    private Pool connection;
     private ResultSet rs;
+
+    public DAO(Pool pool) {
+        this.connection = pool;
+    }
 
     /**
      * Connects to DB via a connection taken from the Pool and inserts all the
@@ -39,6 +43,7 @@ public class DAO implements Signable {
      */
     @Override
     public User signUp(User user) throws ServerErrorException, EmailExistsException, DatabaseErrorException {
+        final String SELECTEMAIL = "SELECT * FROM public.res_users WHERE login = ?";
         final String INSERTPARTNER = "INSERT INTO public.res_partner(company_id, name, street, zip, city, email, active, create_date) VALUES('1',  ?,  ?,  ?,  ?,  ?, true, now())";
         final String SELECTPARTNER = "SELECT id, create_date FROM public.res_partner WHERE id IN (SELECT MAX(id) FROM public.res_partner);";
         final String INSERTUSER = "INSERT INTO public.res_users(company_id, partner_id, active, login, password, notification_type, create_date) VALUES('1', ?, True, ?, ?, 'email', ?)";
@@ -60,6 +65,15 @@ public class DAO implements Signable {
             }
 
             if (con != null) {
+                // Establish statement to select posibly existing email from DB.
+                stmt = con.prepareStatement(SELECTEMAIL);
+                stmt.setString(1, user.getEmail());
+                rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    throw new EmailExistsException();
+                }
+
                 // Establish the statatenent to insert into res_partner
                 stmt = con.prepareStatement(INSERTPARTNER);
                 stmt.setString(1, user.getName());

@@ -9,8 +9,8 @@ import interfaces.Signable;
  * @author Irati
  */
 public class SignableFactory {
-    public static synchronized Signable getSignable(){
-        //Returns the DAO implementation
-        return new DAO();
+   
+    public static synchronized Signable getSignable(Pool pool) {
+        return new DAO(pool);
     }
 }
