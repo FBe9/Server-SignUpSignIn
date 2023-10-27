@@ -40,7 +40,7 @@ public class Server {
     public static void main(String[] args) {
         try {
             //Get the port form a property file for the socket.
-            server = new ServerSocket(Integer.parseInt(ResourceBundle.getBundle("config.Config").getString("PORT")));
+            server = new ServerSocket(Integer.parseInt(ResourceBundle.getBundle("config.config").getString("PORT")));
             logger.info("Waiting for the connection");
 
             // Open SSH connection
@@ -71,7 +71,7 @@ public class Server {
      */
     private static void initializeWorker(Socket client) {
         //Gets from a property file the maximun connections
-        if (connections < Integer.parseInt(ResourceBundle.getBundle("config.Config").getString("MAX_CONNECTIONS"))) {
+        if (connections < Integer.parseInt(ResourceBundle.getBundle("config.config").getString("MAX_CONNECTIONS"))) {
             //Get a signable
             Signable signable = (Signable) SignableFactory.getSignable(pool);
             //Initialize the worker
@@ -124,7 +124,7 @@ public class Server {
      * @throws ServerErrorException if any errors have occurred.
      */
     private static void openSSHConnection() throws ServerErrorException {
-        ResourceBundle configFile = ResourceBundle.getBundle("config.Config");
+        ResourceBundle configFile = ResourceBundle.getBundle("config.config");
 
         // Setup for the ssh user and password
         String ssh_user = configFile.getString("SSH_USER");

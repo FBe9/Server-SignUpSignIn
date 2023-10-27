@@ -29,7 +29,7 @@ public class Pool {
      */
     public Pool() {
 
-        configFile = ResourceBundle.getBundle("config.Config");
+        configFile = ResourceBundle.getBundle("config.config");
         db_user = configFile.getString("DB_USER");
         db_pass = configFile.getString("DB_PASSWORD");
 
