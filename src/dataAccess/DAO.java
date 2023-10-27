@@ -150,26 +150,19 @@ public class DAO implements Signable {
      */
     @Override
     public User signIn(User user) throws ServerErrorException, LoginCredentialException, DatabaseErrorException {
-        final String SEARCHUSER = "SELECT login, password, email, privilege FROM public.res_users WHERE (login = ? and password = ?)";
+        final String SEARCHUSER = "SELECT login, password FROM public.res_users WHERE (login = ? and password = ?)";
         final String USEREXISTS = "SELECT name FROM public.res_partner WHERE partner_id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
 
         try {
+            con = connection.takeConnection();
             stmt = con.prepareStatement(SEARCHUSER);
             stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getPassword());
             rs = stmt.executeQuery();
 
             if (rs.next()) {
-                user.setEmail(rs.getString("Email"));
-                user.setPassword(rs.getString("Password"));
-
-                Privilege privilege = null;
-                for (Privilege a : Privilege.values()) {
-                    if (a.ordinal() == rs.getInt("Privilege")) {
-                        privilege = a;
-                    }
-                }
-                user.setPrivilege(privilege);
+                user.setEmail(rs.getString("login"));
+                user.setPassword(rs.getString("password"));
 
             } else {
                 throw new LoginCredentialException("Incorrect Sign In.");
@@ -178,14 +171,14 @@ public class DAO implements Signable {
 
             stmt = con.prepareStatement(USEREXISTS);
             stmt.setString(1, user.getEmail());
-            stmt.execute();
-
+            stmt.executeQuery();
+            user.setName(rs.getString("name"));
             stmt.close();
 
             connection.returnConnection(con); // Returns the conection to the pool.
 
         } catch (SQLException ex) {
-            throw new ServerErrorException(ex.getMessage());
+            throw new ServerErrorException("Server error.");
             
         } finally {
             
@@ -201,7 +194,7 @@ public class DAO implements Signable {
                 }
                 
             } catch (SQLException ex) {
-                throw new ServerErrorException("Error server");
+                throw new ServerErrorException("Server error.");
             }
         }
         return user;
