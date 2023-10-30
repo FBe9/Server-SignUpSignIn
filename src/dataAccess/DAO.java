@@ -172,7 +172,7 @@ public class DAO implements Signable {
      * @throws DatabaseErrorException This exception is for the DB failures.
      */
     @Override
-    public User signIn(User user) throws ServerErrorException, LoginCredentialException, DatabaseErrorException {
+    public User signIn(User user) throws ServerErrorException, LoginCredentialException {
         final String SEARCHUSER = "SELECT login, password FROM public.res_users WHERE (login = ? and password = ?)";
         final String USEREXISTS = "SELECT name FROM public.res_partner WHERE partner_id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
 
@@ -221,33 +221,5 @@ public class DAO implements Signable {
             }
         }
         return user;
-    }
-
-    class localUserInfo implements UserInfo {
-
-        String passwd;
-
-        public String getPassword() {
-            return passwd;
-        }
-
-        public boolean promptYesNo(String str) {
-            return true;
-        }
-
-        public String getPassphrase() {
-            return null;
-        }
-
-        public boolean promptPassphrase(String message) {
-            return true;
-        }
-
-        public boolean promptPassword(String message) {
-            return true;
-        }
-
-        public void showMessage(String message) {
-        }
     }
 }
