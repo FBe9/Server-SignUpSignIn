@@ -160,8 +160,66 @@ public class DAO implements Signable {
         return user;
     }
 
+    /**
+     * This method is for connect to the DB. The connection taken from the
+     * Pool and search for the user that is trying to sign in.
+     *
+     * @param user It recieves the user in order to make the select in the DB.
+     * @return It returns the user with information after the login is correct
+     * @throws ServerErrorException If the connection to the DB failed.
+     * @throws LoginCredentialException If the user is not in the DB or the user
+     * login or password is incorrect.
+     * @throws DatabaseErrorException This exception is for the DB failures.
+     */
     @Override
-    public User signIn(User user) throws ServerErrorException, LoginCredentialException, DatabaseErrorException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public User signIn(User user) throws ServerErrorException, LoginCredentialException {
+        final String SEARCHUSER = "SELECT login, password FROM public.res_users WHERE (login = ? and password = ?)";
+        final String USEREXISTS = "SELECT name FROM public.res_partner WHERE partner_id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
+
+        try {
+            con = connection.takeConnection();
+            stmt = con.prepareStatement(SEARCHUSER);
+            stmt.setString(1, user.getEmail());
+            stmt.setString(2, user.getPassword());
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                user.setEmail(rs.getString("login"));
+                user.setPassword(rs.getString("password"));
+
+            } else {
+                throw new LoginCredentialException("Incorrect Sign In.");
+            }
+            // If the user exist.
+
+            stmt = con.prepareStatement(USEREXISTS);
+            stmt.setString(1, user.getEmail());
+            stmt.executeQuery();
+            user.setName(rs.getString("name"));
+            stmt.close();
+
+            connection.returnConnection(con); // Returns the conection to the pool.
+
+        } catch (SQLException ex) {
+            throw new ServerErrorException("Server error.");
+            
+        } finally {
+            
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+                
+            } catch (SQLException ex) {
+                throw new ServerErrorException("Server error.");
+            }
+        }
+        return user;
     }
 }
