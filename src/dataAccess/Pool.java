@@ -1,9 +1,5 @@
 package dataAccess;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.UserInfo;
 import exceptions.ServerErrorException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,21 +19,19 @@ import java.util.logging.Logger;
 public class Pool {
 
     private ResourceBundle configFile;
-    //private String url;
-    private String user;
-    private String pass;
-    Stack<Connection> connections = new Stack<>();
+    private String db_user;
+    private String db_pass;
+    private static Stack<Connection> connections = new Stack<>();
     private static final Logger logger = Logger.getLogger(Pool.class.getName());
-    Session session = null;
 
     /**
      * Constructs a new connection pool and initializes it.
      */
     public Pool() {
 
-        configFile = ResourceBundle.getBundle("config.Config");
-        user = configFile.getString("USERNAME");
-        pass = configFile.getString("PASSWORD");
+        configFile = ResourceBundle.getBundle("config.config");
+        db_user = configFile.getString("DB_USER");
+        db_pass = configFile.getString("DB_PASSWORD");
 
     }
 
@@ -49,36 +43,17 @@ public class Pool {
      * @return A database connection.
      * @throws exceptions.ServerErrorException
      */
-    public Connection takeConnection() throws ServerErrorException {
+    public synchronized Connection takeConnection() throws ServerErrorException {
         Connection con = null;
-        // For SSH session(s)
-        int assigned_port;
-        String remote_host_1 = configFile.getString("REMOTE_HOST_1");
-        String remote_host_2 = configFile.getString("REMOTE_HOST_2");
-        Integer postgresql_port = Integer.parseInt(configFile.getString("POSTGRESQL_PORT"));
-        Integer ssh_port = Integer.parseInt(configFile.getString("SSH_PORT"));
 
         //Checks if the stack is empty
         if (connections.isEmpty()) {
             try {
-                // Open SSH session
-                session = new JSch().getSession(user, remote_host_1, ssh_port);
-                session.setPassword(pass);
-                localUserInfo lui = new localUserInfo();
-                session.setUserInfo(lui);
-                session.setConfig("StrictHostKeyChecking", "no");
-                session.setConfig("Compression", "yes");
-                session.connect();
-                assigned_port = session.setPortForwardingL(postgresql_port, remote_host_2, postgresql_port);
-                // URL with assigned SSH port
-                StringBuilder url = new StringBuilder(configFile.getString("URL"));
-                url.append(assigned_port).append(configFile.getString("DB"));
-
+                // DB URL with assigned SSH port
+                String url = configFile.getString("URL");
                 //Creates a new connection
-                con = DriverManager.getConnection(url.toString(), user, pass);
+                con = DriverManager.getConnection(url, db_user, db_pass);
             } catch (SQLException ex) {
-                throw new ServerErrorException();
-            } catch (JSchException ex) {
                 throw new ServerErrorException();
             }
         } else {
@@ -94,7 +69,7 @@ public class Pool {
      *
      * @param con The database connection to be returned to the pool.
      */
-    public void returnConnection(Connection con) {
+    public synchronized void returnConnection(Connection con) {
         //Checks if connection received is null
 
         if (con != null) {
@@ -120,38 +95,5 @@ public class Pool {
         }
         //Clears the stack
         connections.clear();
-        //Close SSH session
-        if (session != null) {
-            session.disconnect();
-        }
-    }
-
-    // User info for SSH sessions
-    class localUserInfo implements UserInfo {
-
-        String passwd;
-
-        public String getPassword() {
-            return passwd;
-        }
-
-        public boolean promptYesNo(String str) {
-            return true;
-        }
-
-        public String getPassphrase() {
-            return null;
-        }
-
-        public boolean promptPassphrase(String message) {
-            return true;
-        }
-
-        public boolean promptPassword(String message) {
-            return true;
-        }
-
-        public void showMessage(String message) {
-        }
     }
 }
