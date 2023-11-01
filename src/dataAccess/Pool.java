@@ -22,6 +22,7 @@ public class Pool {
     private String db_user;
     private String db_pass;
     private static Stack<Connection> connections = new Stack<>();
+    private static Pool pool;
     private static final Logger logger = Logger.getLogger(Pool.class.getName());
 
     /**
@@ -33,6 +34,21 @@ public class Pool {
         db_user = configFile.getString("DB_USER");
         db_pass = configFile.getString("DB_PASSWORD");
 
+    }
+
+    /**
+     * Retrieves the singleton instance of the Pool class.
+     *
+     * This method returns the existing Pool instance if it has already been
+     * created, or it creates a new Pool instance if one does not exist.
+     *
+     * @return The singleton instance of the Pool class.
+     */
+    public static Pool getPool() {
+        if (pool == null) {
+            pool = new Pool();
+        }
+        return pool;
     }
 
     /**

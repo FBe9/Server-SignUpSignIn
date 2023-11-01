@@ -26,8 +26,8 @@ public class DAO implements Signable {
     private Pool connection;
     private ResultSet rs;
 
-    public DAO(Pool pool) {
-        this.connection = pool;
+    public DAO() {
+        this.connection = Pool.getPool();
     }
 
     /**
