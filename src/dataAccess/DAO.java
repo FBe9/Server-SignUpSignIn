@@ -23,9 +23,12 @@ public class DAO implements Signable {
 
     private Connection con;
     private PreparedStatement stmt;
-    private static Pool connection = new Pool();
+    private Pool connection;
     private ResultSet rs;
 
+    public DAO(Pool pool) {
+        this.connection = pool;
+    }
 
     /**
      * Connects to DB via a connection taken from the Pool and inserts all the
@@ -149,9 +152,6 @@ public class DAO implements Signable {
                 if (stmt != null) {
                     stmt.close();
                 }
-                if(rs != null){
-                    rs.close();
-                }
                 connection.returnConnection(con);
             }
         } catch (SQLException ex) {
@@ -174,7 +174,7 @@ public class DAO implements Signable {
     @Override
     public User signIn(User user) throws ServerErrorException, LoginCredentialException {
         final String SEARCHUSER = "SELECT login, password FROM public.res_users WHERE (login = ? and password = ?)";
-        final String USEREXISTS = "SELECT name FROM public.res_partner WHERE id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
+        final String USEREXISTS = "SELECT name FROM public.res_partner WHERE partner_id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
 
         try {
             con = connection.takeConnection();
@@ -194,10 +194,8 @@ public class DAO implements Signable {
 
             stmt = con.prepareStatement(USEREXISTS);
             stmt.setString(1, user.getEmail());
-            rs = stmt.executeQuery();
-            while(rs.next()){
-                user.setName(rs.getString("name"));
-            }
+            stmt.executeQuery();
+            user.setName(rs.getString("name"));
             stmt.close();
 
             connection.returnConnection(con); // Returns the conection to the pool.
@@ -213,6 +211,9 @@ public class DAO implements Signable {
                 }
                 if (stmt != null) {
                     stmt.close();
+                }
+                if (con != null) {
+                    con.close();
                 }
                 
             } catch (SQLException ex) {

@@ -1,5 +1,6 @@
 package service;
 
+import dataAccess.Pool;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -30,6 +31,7 @@ public class Server {
     private static ServerSocket server = null;
     private static int connections = 0;
     private static final Logger logger = Logger.getLogger(Worker.class.getName());
+    private static Pool pool = new Pool();
     private static Session session;
 
     /**
@@ -71,7 +73,7 @@ public class Server {
         //Gets from a property file the maximun connections
         if (connections < Integer.parseInt(ResourceBundle.getBundle("config.config").getString("MAX_CONNECTIONS"))) {
             //Get a signable
-            Signable signable = (Signable) SignableFactory.getSignable();
+            Signable signable = (Signable) SignableFactory.getSignable(pool);
             //Initialize the worker
             Worker worker = new Worker(client, signable);
             worker.start();

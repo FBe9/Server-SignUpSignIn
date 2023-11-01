@@ -10,7 +10,7 @@ import interfaces.Signable;
  */
 public class SignableFactory {
    
-    public static synchronized Signable getSignable() {
-        return new DAO();
+    public static synchronized Signable getSignable(Pool pool) {
+        return new DAO(pool);
     }
 }
