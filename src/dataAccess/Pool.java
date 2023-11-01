@@ -44,7 +44,7 @@ public class Pool {
      *
      * @return The singleton instance of the Pool class.
      */
-    public static Pool getPool() {
+    public synchronized static Pool getPool() {
         if (pool == null) {
             pool = new Pool();
         }
