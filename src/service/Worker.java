@@ -1,7 +1,5 @@
 package service;
 
-
-import exceptions.DatabaseErrorException;
 import exceptions.EmailExistsException;
 import exceptions.LoginCredentialException;
 import exceptions.ServerErrorException;
@@ -15,24 +13,23 @@ import java.util.logging.Logger;
 import message.Message;
 import message.ResponseRequest;
 
-
-
 /**
- * This class represents a worker thread responsible managing the petitions of the client such as sign-up or sign-in
- * and sending back appropriate responses.
- * 
+ * This class represents a worker thread responsible managing the petitions of
+ * the client such as sign-up or sign-in and sending back appropriate responses.
+ *
  * @author Irati
  */
 public class Worker extends Thread {
-    
+
     private Socket client;
     private Signable signable;
     private ObjectOutputStream write;
     private ObjectInputStream read;
-    
-     /**
-     * Initializes a new worker thread with the client socket and signable implementation.
-     * 
+
+    /**
+     * Initializes a new worker thread with the client socket and signable
+     * implementation.
+     *
      * @param client The client's socket connection.
      * @param signable DAO implementation of the Signable interface.
      */
@@ -40,10 +37,11 @@ public class Worker extends Thread {
         this.client = client;
         this.signable = signable;
     }
-     /**
+
+    /**
      * Runs the worker thread to process client requests and send responses.
      */
-    
+
     @Override
     public void run() {
         ResponseRequest responseRequest = new ResponseRequest();
@@ -53,26 +51,23 @@ public class Worker extends Thread {
             read = new ObjectInputStream(client.getInputStream());
             //Reads the responseRequest sent by the client
             responseRequest = (ResponseRequest) read.readObject();
-            
+
             //Takes the recieved message to make a SignUp or a SignIn
             if (responseRequest.getMessage() == Message.SIGNUP) {
                 responseRequest.setUser(signable.signUp(responseRequest.getUser()));
             } else {
                 responseRequest.setUser(signable.signIn(responseRequest.getUser()));
-                
+
             }
             //If there isn't an error, establishes the OK response
             responseRequest.setMessage(Message.RESPONSE_OK);
-            
+
         } catch (ServerErrorException ex) {
             //If there is a ServerErrorException catches it and creates a ResponseRequest
             responseRequest = new ResponseRequest(null, Message.SERVER_ERROR);
         } catch (EmailExistsException ex) {
             //If there is a EmailExistsException catches it and creates a ResponseRequest
-            responseRequest = new ResponseRequest(null, Message.EMAIL_EXITS_ERROR);            
-        } catch (DatabaseErrorException ex) {
-            //If there is a DatabaseErrorException catches it and creates a ResponseRequest
-            responseRequest = new ResponseRequest(null, Message.DATABASE_ERROR);
+            responseRequest = new ResponseRequest(null, Message.EMAIL_EXITS_ERROR);
         } catch (ClassNotFoundException | IOException ex) {
             Logger.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
         } catch (LoginCredentialException ex) {
@@ -91,8 +86,8 @@ public class Worker extends Thread {
             } catch (IOException ex) {
                 Logger.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
         }
-        
+
     }
 }

@@ -1,6 +1,5 @@
 package dataAccess;
 
-import exceptions.DatabaseErrorException;
 import exceptions.EmailExistsException;
 import exceptions.LoginCredentialException;
 import exceptions.ServerErrorException;
@@ -18,6 +17,7 @@ import models.User;
  * interface.
  *
  * @author Olivia
+ * @author Leire
  */
 public class DAO implements Signable {
 
@@ -26,8 +26,8 @@ public class DAO implements Signable {
     private Pool connection;
     private ResultSet rs;
 
-    public DAO(Pool pool) {
-        this.connection = pool;
+    public DAO() {
+        this.connection = Pool.getPool();
     }
 
     /**
@@ -38,12 +38,10 @@ public class DAO implements Signable {
      * @return the user if execution is successful.
      * @throws ServerErrorException if the connection to the DB failed.
      * @throws EmailExistsException if the email already exists in the DB.
-     * @throws DatabaseErrorException for all other DB failures.
      */
     @Override
-    public User signUp(User user) throws ServerErrorException, EmailExistsException, DatabaseErrorException {
-        final String ROLLBACK = "ROLLBACK";
-        final String COMMIT = "COMMIT";
+    public User signUp(User user) throws ServerErrorException, EmailExistsException {
+        
         final String SELECTEMAIL = "SELECT * FROM public.res_users WHERE login = ?";
         final String INSERTPARTNER = "INSERT INTO public.res_partner(company_id, name, street, zip, city, email, active, create_date) VALUES('1',  ?,  ?,  ?,  ?,  ?, true, now())";
         final String SELECTPARTNER = "SELECT id, create_date FROM public.res_partner WHERE id IN (SELECT MAX(id) FROM public.res_partner);";
@@ -86,7 +84,7 @@ public class DAO implements Signable {
                     stmt.setString(4, user.getCity());
                     stmt.setString(5, user.getEmail());
                     if (stmt.executeUpdate() == 0) {
-                        throw new DatabaseErrorException();
+                        throw new ServerErrorException();
                     }
 
                     // Second statement to select id and creation date from res_partner
@@ -105,7 +103,7 @@ public class DAO implements Signable {
                     stmt.setTimestamp(4, create_date);
                     // Execute statement
                     if (stmt.executeUpdate() == 0) {
-                        throw new DatabaseErrorException();
+                        throw new ServerErrorException();
                     }
 
                     // Fourth statement to select UID from res_users
@@ -132,7 +130,7 @@ public class DAO implements Signable {
                     stmt.setInt(4, uid);
                     // Execute statement
                     if (stmt.executeUpdate() == 0) {
-                        throw new DatabaseErrorException();
+                        throw new ServerErrorException();
                     }
 
                     // Prepare sixth statement to insert user into res_company_users_rel
@@ -140,41 +138,43 @@ public class DAO implements Signable {
                     stmt.setInt(1, uid);
                     //Execute statement
                     if (stmt.executeUpdate() == 0) {
-                        throw new DatabaseErrorException();
+                        throw new ServerErrorException();
                     }
                     con.commit();
                 }
             } catch (SQLException ex) {
                 con.rollback();
-                throw new DatabaseErrorException();
+                throw new ServerErrorException();
             } finally {
                 //Close the connection
                 if (stmt != null) {
                     stmt.close();
                 }
+                if(rs != null){
+                    rs.close();
+                }
                 connection.returnConnection(con);
             }
         } catch (SQLException ex) {
-            throw new DatabaseErrorException();
+            throw new ServerErrorException();
         }
         return user;
     }
 
     /**
-     * This method is for connect to the DB. The connection taken from the
-     * Pool and search for the user that is trying to sign in.
+     * This method is for connect to the DB. The connection taken from the Pool
+     * and search for the user that is trying to sign in.
      *
      * @param user It recieves the user in order to make the select in the DB.
      * @return It returns the user with information after the login is correct
      * @throws ServerErrorException If the connection to the DB failed.
      * @throws LoginCredentialException If the user is not in the DB or the user
      * login or password is incorrect.
-     * @throws DatabaseErrorException This exception is for the DB failures.
      */
     @Override
     public User signIn(User user) throws ServerErrorException, LoginCredentialException {
         final String SEARCHUSER = "SELECT login, password FROM public.res_users WHERE (login = ? and password = ?)";
-        final String USEREXISTS = "SELECT name FROM public.res_partner WHERE partner_id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
+        final String USEREXISTS = "SELECT name FROM public.res_partner WHERE id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
 
         try {
             con = connection.takeConnection();
@@ -194,17 +194,19 @@ public class DAO implements Signable {
 
             stmt = con.prepareStatement(USEREXISTS);
             stmt.setString(1, user.getEmail());
-            stmt.executeQuery();
-            user.setName(rs.getString("name"));
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                user.setName(rs.getString("name"));
+            }
             stmt.close();
 
             connection.returnConnection(con); // Returns the conection to the pool.
 
         } catch (SQLException ex) {
             throw new ServerErrorException("Server error.");
-            
+
         } finally {
-            
+
             try {
                 if (rs != null) {
                     rs.close();
@@ -212,10 +214,7 @@ public class DAO implements Signable {
                 if (stmt != null) {
                     stmt.close();
                 }
-                if (con != null) {
-                    con.close();
-                }
-                
+
             } catch (SQLException ex) {
                 throw new ServerErrorException("Server error.");
             }

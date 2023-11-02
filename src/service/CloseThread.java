@@ -1,6 +1,5 @@
 package service;
 
-import com.jcraft.jsch.Session;
 import dataAccess.Pool;
 import static java.lang.System.exit;
 import java.util.Scanner;
@@ -15,10 +14,11 @@ public class CloseThread extends Thread {
 
     private static final Logger logger = Logger.getLogger(CloseThread.class.getName());
     Scanner scanner = new Scanner(System.in);
-    Session session;
 
-    public CloseThread(Session session) {
-        session = this.session;
+    /**
+     * Constructor method for the Close Thread.
+     */
+    public CloseThread() {
     }
 
     /**
@@ -34,13 +34,8 @@ public class CloseThread extends Thread {
         if (userInput == 1) {
             logger.info("Server is shutting down");
             //Close the connections of the pool
-            Pool pool = new Pool();
+            Pool pool = Pool.getPool();
             pool.closeAllConnections();
-            if (session != null) {
-                //Close SSH session
-                session.disconnect();
-                logger.info("SSH disconnected.");
-            }
             exit(0);
         }
 
