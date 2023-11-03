@@ -25,6 +25,7 @@ public class Worker extends Thread {
     private Signable signable;
     private ObjectOutputStream write;
     private ObjectInputStream read;
+    private static final Logger LOGGER = Logger.getLogger(" package dataAcess");
 
     /**
      * Initializes a new worker thread with the client socket and signable
@@ -41,7 +42,6 @@ public class Worker extends Thread {
     /**
      * Runs the worker thread to process client requests and send responses.
      */
-
     @Override
     public void run() {
         ResponseRequest responseRequest = new ResponseRequest();
@@ -64,14 +64,17 @@ public class Worker extends Thread {
 
         } catch (ServerErrorException ex) {
             //If there is a ServerErrorException catches it and creates a ResponseRequest
+            LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             responseRequest = new ResponseRequest(null, Message.SERVER_ERROR);
         } catch (EmailExistsException ex) {
             //If there is a EmailExistsException catches it and creates a ResponseRequest
+            LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             responseRequest = new ResponseRequest(null, Message.EMAIL_EXITS_ERROR);
         } catch (ClassNotFoundException | IOException ex) {
             Logger.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
         } catch (LoginCredentialException ex) {
             //If there is a LoginCredentialException catches it and creates a ResponseRequest
+            LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             responseRequest = new ResponseRequest(null, Message.CREDENTIAL_ERROR);
         } finally {
             try {

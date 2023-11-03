@@ -9,8 +9,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import models.Privilege;
 import models.User;
+import service.Server;
+import service.Worker;
 
 /**
  * Class that implements the SignUp and SignIn methods of the Signable
@@ -25,6 +29,7 @@ public class DAO implements Signable {
     private PreparedStatement stmt;
     private Pool connection;
     private ResultSet rs;
+    private static final Logger LOGGER = Logger.getLogger("package dataAcess");
 
     public DAO() {
         this.connection = Pool.getPool();
@@ -41,7 +46,7 @@ public class DAO implements Signable {
      */
     @Override
     public User signUp(User user) throws ServerErrorException, EmailExistsException {
-        
+
         final String SELECTEMAIL = "SELECT * FROM public.res_users WHERE login = ?";
         final String INSERTPARTNER = "INSERT INTO public.res_partner(company_id, name, street, zip, city, email, active, create_date) VALUES('1',  ?,  ?,  ?,  ?,  ?, true, now())";
         final String SELECTPARTNER = "SELECT id, create_date FROM public.res_partner WHERE id IN (SELECT MAX(id) FROM public.res_partner);";
@@ -56,11 +61,13 @@ public class DAO implements Signable {
         Timestamp create_date = null;
 
         try {
+            LOGGER.info("INSERTING USER");
             try {
                 // Open the connection to DB
                 try {
                     con = connection.takeConnection();
                 } catch (ServerErrorException ex) {
+                    LOGGER.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                     throw new ServerErrorException();
                 }
 
@@ -74,6 +81,7 @@ public class DAO implements Signable {
 
                     while (rs.next()) {
                         throw new EmailExistsException();
+
                     }
 
                     // Establish the statatenent to insert into res_partner
@@ -141,16 +149,19 @@ public class DAO implements Signable {
                         throw new ServerErrorException();
                     }
                     con.commit();
+                    LOGGER.info("USER INSERT SUCCESSFULL");
                 }
+
             } catch (SQLException ex) {
                 con.rollback();
+                LOGGER.info("Error DAO: SQLError, Rolled back");
                 throw new ServerErrorException();
             } finally {
                 //Close the connection
                 if (stmt != null) {
                     stmt.close();
                 }
-                if(rs != null){
+                if (rs != null) {
                     rs.close();
                 }
                 connection.returnConnection(con);
@@ -176,6 +187,7 @@ public class DAO implements Signable {
         final String SEARCHUSER = "SELECT login, password FROM public.res_users WHERE (login = ? and password = ?)";
         final String USEREXISTS = "SELECT name FROM public.res_partner WHERE id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
 
+        LOGGER.info("FINDING USER");
         try {
             con = connection.takeConnection();
             stmt = con.prepareStatement(SEARCHUSER);
@@ -201,8 +213,9 @@ public class DAO implements Signable {
             stmt.close();
 
             connection.returnConnection(con); // Returns the conection to the pool.
-
+            LOGGER.info("USER FOUND");
         } catch (SQLException ex) {
+             LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             throw new ServerErrorException("Server error.");
 
         } finally {
@@ -216,6 +229,7 @@ public class DAO implements Signable {
                 }
 
             } catch (SQLException ex) {
+                 LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
                 throw new ServerErrorException("Server error.");
             }
         }
