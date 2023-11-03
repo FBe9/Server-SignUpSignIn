@@ -8,6 +8,7 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import service.Worker;
 
 /**
  * The `Pool` class represents a connection pool for managing database
@@ -23,7 +24,7 @@ public class Pool {
     private String db_pass;
     private static Stack<Connection> connections = new Stack<>();
     private static Pool pool;
-    private static final Logger logger = Logger.getLogger(Pool.class.getName());
+    private static final Logger LOGGER = Logger.getLogger("package dataAcess");
 
     /**
      * Constructs a new connection pool and initializes it.
@@ -46,6 +47,7 @@ public class Pool {
      */
     public synchronized static Pool getPool() {
         if (pool == null) {
+            LOGGER.info("Instancing Pool");
             pool = new Pool();
         }
         return pool;
@@ -69,11 +71,14 @@ public class Pool {
                 String url = configFile.getString("URL");
                 //Creates a new connection
                 con = DriverManager.getConnection(url, db_user, db_pass);
+                LOGGER.info("First Pool connection");
+
             } catch (SQLException ex) {
                 throw new ServerErrorException();
             }
         } else {
             //Gets the connection from the stack
+            LOGGER.info("Getting a Pool connection from the pool");
             con = connections.pop();
         }
         //Returns the connection
@@ -91,6 +96,7 @@ public class Pool {
         if (con != null) {
             //Adds the connection to the stack
             connections.push(con);
+            LOGGER.info("Returning a Pool connection from the pool");
         }
     }
 
@@ -100,7 +106,7 @@ public class Pool {
      */
     public void closeAllConnections() {
         //Message for the user
-        logger.info("Closing all the connections of the Pool");
+        LOGGER.info("Closing all the connections of the Pool");
         //Closes the connections
         for (Connection con : connections) {
             try {
