@@ -176,7 +176,7 @@ public class DAO implements Signable {
      * This method is for connect to the DB. The connection taken from the Pool
      * and search for the user that is trying to sign in.
      *
-     * @param user It recieves the user in order to make the select in the DB.
+     * @param user It receives the user in order to make the select in the DB.
      * @return It returns the user with information after the login is correct
      * @throws ServerErrorException If the connection to the DB failed.
      * @throws LoginCredentialException If the user is not in the DB or the user

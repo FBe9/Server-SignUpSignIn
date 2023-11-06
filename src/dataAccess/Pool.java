@@ -8,7 +8,6 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import service.Worker;
 
 /**
  * The `Pool` class represents a connection pool for managing database
@@ -27,7 +26,7 @@ public class Pool {
     private static final Logger LOGGER = Logger.getLogger("package dataAcess");
 
     /**
-     * Constructs a new connection pool and initializes it.
+     * Constructs a new connection pool and initialises it.
      */
     public Pool() {
 
@@ -102,8 +101,7 @@ public class Pool {
     }
 
     /**
-     * Closes all connections in the pool and clears the pool. Disconnects the
-     * SSH session.
+     * Closes all connections in the pool and clears the pool.
      */
     public void closeAllConnections() {
         //Message for the user
