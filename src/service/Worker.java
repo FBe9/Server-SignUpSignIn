@@ -72,6 +72,7 @@ public class Worker extends Thread {
             responseRequest = new ResponseRequest(null, Message.EMAIL_EXITS_ERROR);
         } catch (ClassNotFoundException | IOException ex) {
             Logger.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
+            responseRequest = new ResponseRequest(null, Message.SERVER_ERROR);
         } catch (LoginCredentialException ex) {
             //If there is a LoginCredentialException catches it and creates a ResponseRequest
             LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);

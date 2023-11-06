@@ -47,7 +47,7 @@ public class Pool {
      */
     public synchronized static Pool getPool() {
         if (pool == null) {
-            LOGGER.info("Instancing Pool");
+            LOGGER.info("Instancing Pool.");
             pool = new Pool();
         }
         return pool;
@@ -71,14 +71,15 @@ public class Pool {
                 String url = configFile.getString("URL");
                 //Creates a new connection
                 con = DriverManager.getConnection(url, db_user, db_pass);
-                LOGGER.info("First Pool connection");
+                LOGGER.info("First Pool connection.");
 
             } catch (SQLException ex) {
-                throw new ServerErrorException();
+                LOGGER.getLogger(Pool.class.getName()).log(Level.SEVERE, null, ex);
+                throw new ServerErrorException(ex.getMessage());
             }
         } else {
             //Gets the connection from the stack
-            LOGGER.info("Getting a Pool connection from the pool");
+            LOGGER.info("Getting a pool connection from the Pool.");
             con = connections.pop();
         }
         //Returns the connection
@@ -96,7 +97,7 @@ public class Pool {
         if (con != null) {
             //Adds the connection to the stack
             connections.push(con);
-            LOGGER.info("Returning a Pool connection from the pool");
+            LOGGER.info("Returning a pool connection to the Pool.");
         }
     }
 
@@ -106,7 +107,7 @@ public class Pool {
      */
     public void closeAllConnections() {
         //Message for the user
-        LOGGER.info("Closing all the connections of the Pool");
+        LOGGER.info("Closing all Pool connections.");
         //Closes the connections
         for (Connection con : connections) {
             try {

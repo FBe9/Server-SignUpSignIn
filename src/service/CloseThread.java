@@ -26,13 +26,16 @@ public class CloseThread extends Thread {
      */
     @Override
     public void run() {
+        int userInput = 0;
         //Logger to indicate which key must be pressed to close the server
-        logger.info("Server is currently running. If you want to finish it PRESS 1");
-        //Waits for the response
-        int userInput = scanner.nextInt();
+        logger.info("Server is currently running. If you want to finish it PRESS 1 and then ENTER.");
+        do {
+            //Waits for the response
+            userInput = scanner.nextInt();
+        } while (userInput != 1);
         //If the established key is pressed shuts down the server with an exit(0)
         if (userInput == 1) {
-            logger.info("Server is shutting down");
+            logger.info("Server is shutting down.");
             //Close the connections of the pool
             Pool pool = Pool.getPool();
             pool.closeAllConnections();
@@ -40,4 +43,5 @@ public class CloseThread extends Thread {
         }
 
     }
+
 }

@@ -34,7 +34,7 @@ public class Server {
         try {
             //Get the port form a property file for the socket.
             server = new ServerSocket(Integer.parseInt(ResourceBundle.getBundle("config.config").getString("PORT")));
-            logger.info("Waiting for the connection");
+            logger.info("Waiting for the connection.");
 
             //Calls the method waitClose that creates a thread that is in charge of clossing the server.
             waitClose();
@@ -58,10 +58,10 @@ public class Server {
      * @param client The client's socket connection.
      */
     private static void initializeWorker(Socket client) {
-        logger.info("Initialicing the worker thread");
+        logger.info("Initialising the worker thread.");
         //Gets from a property file the maximun connections
         if (connections < Integer.parseInt(ResourceBundle.getBundle("config.config").getString("MAX_CONNECTIONS"))) {
-            logger.info("It is a connection avaliable");
+            logger.info("There is a connection avaliable.");
             //Get a signable
             Signable signable = (Signable) SignableFactory.getSignable();
             //Initialize the worker
@@ -71,7 +71,7 @@ public class Server {
             connections++;
 
         } else {
-            logger.info("It is not any connection avaliable");                    
+            logger.info("No connections avaliable.");                    
             //If the maximun capacity has been reached. Seeds a exception
             try {
                 throw new ServerMaxCapacityException();
@@ -95,7 +95,7 @@ public class Server {
      */
 
     public synchronized static void closeWorker() {
-        logger.info("Closing the connection");
+        logger.info("Closing the connection.");
         //Decrease the connections' counter
         connections--;
     }
@@ -104,7 +104,7 @@ public class Server {
      * Initiates the thread in change of clossing the server.
      */
     public static void waitClose() {
-        logger.info("Closing the server");
+        logger.info("Closing the server.");
         CloseThread close = new CloseThread();
         close.start();
     }
