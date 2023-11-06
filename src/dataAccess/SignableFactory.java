@@ -6,7 +6,6 @@ import interfaces.Signable;
  * A factory class to create instances of classes that implement the Signable
  * interface.
  *
- *
  * @author Irati
  */
 public class SignableFactory {

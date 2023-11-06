@@ -15,8 +15,8 @@ import message.ResponseRequest;
 
 /**
  * The Server class represents a server application that connects with the
- * client side. It listens for client connections and initializes worker threads
- * to manage the requets. When the server reaches its maximum capacity, it sends
+ * client side. It listens for client connections and initialises worker threads
+ * to manage the request. When the server reaches its maximum capacity, it sends
  * a server capacity error response to clients.
  *
  * @author Irati
@@ -28,20 +28,22 @@ public class Server {
     private static final Logger logger = Logger.getLogger(Worker.class.getName());
 
     /**
+     * Main method for the Server.
+     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         try {
-            //Get the port form a property file for the socket.
+            // Get the port form a property file for the socket.
             server = new ServerSocket(Integer.parseInt(ResourceBundle.getBundle("config.config").getString("PORT")));
-            logger.info("Waiting for the connection");
+            logger.info("Waiting for the connection.");
 
-            //Calls the method waitClose that creates a thread that is in charge of clossing the server.
+            // Calls the method waitClose that creates a thread that is in charge of clossing the server.
             waitClose();
-            //A loop that listens the client petitions
+            // A loop that listens the client petitions
             while (true) {
                 Socket client = server.accept();
-                //Calls the method to initialize worker threads.
+                // Calls the method to initialize worker threads.
                 initializeWorker(client);
             }
         } catch (IOException ex) {
@@ -50,38 +52,38 @@ public class Server {
     }
 
     /**
-     * Initializes a worker that manage a client connection. If the server can
+     * Initialises a worker that manage a client connection. If the server can
      * handle the petition, a worker thread is created to serve the client. If
-     * the server is at its maximun capacity, it sends a server capacity error
+     * the server is at its maximum capacity, it sends a server capacity error
      * response to the client.
      *
      * @param client The client's socket connection.
      */
     private static void initializeWorker(Socket client) {
-        logger.info("Initialicing the worker thread");
-        //Gets from a property file the maximun connections
+        logger.info("Initialising the worker thread.");
+        // Gets from a property file the maximun connections
         if (connections < Integer.parseInt(ResourceBundle.getBundle("config.config").getString("MAX_CONNECTIONS"))) {
-            logger.info("It is a connection avaliable");
-            //Get a signable
+            logger.info("There is a connection avaliable.");
+            // Get a signable
             Signable signable = (Signable) SignableFactory.getSignable();
-            //Initialize the worker
+            // Initialize the worker
             Worker worker = new Worker(client, signable);
             worker.start();
-            //Increments the connections' counter
+            // Increments the connections' counter
             connections++;
 
         } else {
-            logger.info("It is not any connection avaliable");                    
-            //If the maximun capacity has been reached. Seeds a exception
+            logger.info("No connections avaliable.");
+            // If the maximun capacity has been reached. Seeds a exception
             try {
                 throw new ServerMaxCapacityException();
             } catch (ServerMaxCapacityException ex) {
                 try {
-                    //Gets an ObjectOutputStream to write.
+                    // Gets an ObjectOutputStream to write.
                     ObjectOutputStream write = new ObjectOutputStream(client.getOutputStream());
-                    //Creates a responde for the client.
+                    // Creates a responde for the client.
                     ResponseRequest response = new ResponseRequest(null, Message.SERVER_CAPACITY_ERROR);
-                    //Sends the response to the client.
+                    // Sends the response to the client.
                     write.writeObject(response);
                 } catch (IOException ex1) {
                     Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex1);
@@ -93,18 +95,17 @@ public class Server {
     /**
      * Decreases the count of active connections.
      */
-
     public synchronized static void closeWorker() {
-        logger.info("Closing the connection");
-        //Decrease the connections' counter
+        logger.info("Closing the connection.");
+        // Decrease the connections' counter
         connections--;
     }
 
     /**
-     * Initiates the thread in change of clossing the server.
+     * Initiates the thread in change of closing the server.
      */
     public static void waitClose() {
-        logger.info("Closing the server");
+        logger.info("Closing the server.");
         CloseThread close = new CloseThread();
         close.start();
     }

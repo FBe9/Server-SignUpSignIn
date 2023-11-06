@@ -8,7 +8,6 @@ import java.util.ResourceBundle;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import service.Worker;
 
 /**
  * The `Pool` class represents a connection pool for managing database
@@ -27,7 +26,7 @@ public class Pool {
     private static final Logger LOGGER = Logger.getLogger("package dataAcess");
 
     /**
-     * Constructs a new connection pool and initializes it.
+     * Constructs a new connection pool and initialises it.
      */
     public Pool() {
 
@@ -47,7 +46,7 @@ public class Pool {
      */
     public synchronized static Pool getPool() {
         if (pool == null) {
-            LOGGER.info("Instancing Pool");
+            LOGGER.info("Instancing Pool.");
             pool = new Pool();
         }
         return pool;
@@ -71,14 +70,15 @@ public class Pool {
                 String url = configFile.getString("URL");
                 //Creates a new connection
                 con = DriverManager.getConnection(url, db_user, db_pass);
-                LOGGER.info("First Pool connection");
+                LOGGER.info("First Pool connection.");
 
             } catch (SQLException ex) {
-                throw new ServerErrorException();
+                LOGGER.getLogger(Pool.class.getName()).log(Level.SEVERE, null, ex);
+                throw new ServerErrorException(ex.getMessage());
             }
         } else {
             //Gets the connection from the stack
-            LOGGER.info("Getting a Pool connection from the pool");
+            LOGGER.info("Getting a pool connection from the Pool.");
             con = connections.pop();
         }
         //Returns the connection
@@ -96,17 +96,16 @@ public class Pool {
         if (con != null) {
             //Adds the connection to the stack
             connections.push(con);
-            LOGGER.info("Returning a Pool connection from the pool");
+            LOGGER.info("Returning a pool connection to the Pool.");
         }
     }
 
     /**
-     * Closes all connections in the pool and clears the pool. Disconnects the
-     * SSH session.
+     * Closes all connections in the pool and clears the pool.
      */
     public void closeAllConnections() {
         //Message for the user
-        LOGGER.info("Closing all the connections of the Pool");
+        LOGGER.info("Closing all Pool connections.");
         //Closes the connections
         for (Connection con : connections) {
             try {

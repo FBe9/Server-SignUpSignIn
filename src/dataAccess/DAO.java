@@ -61,14 +61,14 @@ public class DAO implements Signable {
         Timestamp create_date = null;
 
         try {
-            LOGGER.info("INSERTING USER");
+            LOGGER.info("Creating user.");
             try {
                 // Open the connection to DB
                 try {
                     con = connection.takeConnection();
                 } catch (ServerErrorException ex) {
                     LOGGER.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                    throw new ServerErrorException();
+                    throw new ServerErrorException(ex.getMessage());
                 }
 
                 if (con != null) {
@@ -80,7 +80,7 @@ public class DAO implements Signable {
                     rs = stmt.executeQuery();
 
                     while (rs.next()) {
-                        throw new EmailExistsException();
+                        throw new EmailExistsException("Email exists.");
 
                     }
 
@@ -92,7 +92,7 @@ public class DAO implements Signable {
                     stmt.setString(4, user.getCity());
                     stmt.setString(5, user.getEmail());
                     if (stmt.executeUpdate() == 0) {
-                        throw new ServerErrorException();
+                        throw new ServerErrorException("Error in the partner insert.");
                     }
 
                     // Second statement to select id and creation date from res_partner
@@ -111,7 +111,7 @@ public class DAO implements Signable {
                     stmt.setTimestamp(4, create_date);
                     // Execute statement
                     if (stmt.executeUpdate() == 0) {
-                        throw new ServerErrorException();
+                        throw new ServerErrorException("Error while inserting user.");
                     }
 
                     // Fourth statement to select UID from res_users
@@ -138,7 +138,7 @@ public class DAO implements Signable {
                     stmt.setInt(4, uid);
                     // Execute statement
                     if (stmt.executeUpdate() == 0) {
-                        throw new ServerErrorException();
+                        throw new ServerErrorException("Error inserting into groups.");
                     }
 
                     // Prepare sixth statement to insert user into res_company_users_rel
@@ -146,16 +146,16 @@ public class DAO implements Signable {
                     stmt.setInt(1, uid);
                     //Execute statement
                     if (stmt.executeUpdate() == 0) {
-                        throw new ServerErrorException();
+                        throw new ServerErrorException("Error inserting into company.");
                     }
                     con.commit();
-                    LOGGER.info("USER INSERT SUCCESSFULL");
+                    LOGGER.info("User created succesfully.");
                 }
 
             } catch (SQLException ex) {
                 con.rollback();
-                LOGGER.info("Error DAO: SQLError, Rolled back");
-                throw new ServerErrorException();
+                LOGGER.info("Error DAO: SQLError, rolled back:\n" + ex.getMessage());
+                throw new ServerErrorException(ex.getMessage());
             } finally {
                 //Close the connection
                 if (stmt != null) {
@@ -167,7 +167,7 @@ public class DAO implements Signable {
                 connection.returnConnection(con);
             }
         } catch (SQLException ex) {
-            throw new ServerErrorException();
+            throw new ServerErrorException(ex.getMessage());
         }
         return user;
     }
@@ -176,7 +176,7 @@ public class DAO implements Signable {
      * This method is for connect to the DB. The connection taken from the Pool
      * and search for the user that is trying to sign in.
      *
-     * @param user It recieves the user in order to make the select in the DB.
+     * @param user It receives the user in order to make the select in the DB.
      * @return It returns the user with information after the login is correct
      * @throws ServerErrorException If the connection to the DB failed.
      * @throws LoginCredentialException If the user is not in the DB or the user
@@ -187,7 +187,7 @@ public class DAO implements Signable {
         final String SEARCHUSER = "SELECT login, password FROM public.res_users WHERE (login = ? and password = ?)";
         final String USEREXISTS = "SELECT name FROM public.res_partner WHERE id IN (SELECT partner_id FROM public.res_users WHERE (login = ?))";
 
-        LOGGER.info("FINDING USER");
+        LOGGER.info("Searching for user.");
         try {
             con = connection.takeConnection();
             stmt = con.prepareStatement(SEARCHUSER);
@@ -213,7 +213,7 @@ public class DAO implements Signable {
             stmt.close();
 
             connection.returnConnection(con); // Returns the conection to the pool.
-            LOGGER.info("USER FOUND");
+            LOGGER.info("User found.");
         } catch (SQLException ex) {
              LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             throw new ServerErrorException("Server error.");

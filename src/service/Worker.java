@@ -28,7 +28,7 @@ public class Worker extends Thread {
     private static final Logger LOGGER = Logger.getLogger(" package dataAcess");
 
     /**
-     * Initializes a new worker thread with the client socket and signable
+     * Initialises a new worker thread with the client socket and Signable
      * implementation.
      *
      * @param client The client's socket connection.
@@ -46,45 +46,46 @@ public class Worker extends Thread {
     public void run() {
         ResponseRequest responseRequest = new ResponseRequest();
         try {
-            //Instance of ObjectOutputStream and ObjectImputStream
+            // Instance of ObjectOutputStream and ObjectImputStream
             write = new ObjectOutputStream(client.getOutputStream());
             read = new ObjectInputStream(client.getInputStream());
-            //Reads the responseRequest sent by the client
+            // Reads the responseRequest sent by the client
             responseRequest = (ResponseRequest) read.readObject();
 
-            //Takes the recieved message to make a SignUp or a SignIn
+            // Takes the recieved message to make a SignUp or a SignIn
             if (responseRequest.getMessage() == Message.SIGNUP) {
                 responseRequest.setUser(signable.signUp(responseRequest.getUser()));
             } else {
                 responseRequest.setUser(signable.signIn(responseRequest.getUser()));
 
             }
-            //If there isn't an error, establishes the OK response
+            // If there isn't an error, establishes the OK response
             responseRequest.setMessage(Message.RESPONSE_OK);
 
         } catch (ServerErrorException ex) {
-            //If there is a ServerErrorException catches it and creates a ResponseRequest
+            // If there is a ServerErrorException catches it and creates a ResponseRequest
             LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             responseRequest = new ResponseRequest(null, Message.SERVER_ERROR);
         } catch (EmailExistsException ex) {
-            //If there is a EmailExistsException catches it and creates a ResponseRequest
+            // If there is a EmailExistsException catches it and creates a ResponseRequest
             LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             responseRequest = new ResponseRequest(null, Message.EMAIL_EXITS_ERROR);
         } catch (ClassNotFoundException | IOException ex) {
             Logger.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
+            responseRequest = new ResponseRequest(null, Message.SERVER_ERROR);
         } catch (LoginCredentialException ex) {
-            //If there is a LoginCredentialException catches it and creates a ResponseRequest
+            // If there is a LoginCredentialException catches it and creates a ResponseRequest
             LOGGER.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
             responseRequest = new ResponseRequest(null, Message.CREDENTIAL_ERROR);
         } finally {
             try {
-                //Writes the response
+                // Writes the response
                 write.writeObject(responseRequest);
-                //Close ObjectOutputStream, ObjectImputStream and the socket
+                // Close ObjectOutputStream, ObjectImputStream and the socket
                 read.close();
                 write.close();
                 client.close();
-                //Calls the method to decrease the connections count
+                // Calls the method to decrease the connections count
                 Server.closeWorker();
             } catch (IOException ex) {
                 Logger.getLogger(Worker.class.getName()).log(Level.SEVERE, null, ex);
