@@ -21,7 +21,8 @@ public class Pool {
     private ResourceBundle configFile;
     private String db_user;
     private String db_pass;
-    private static Stack<Connection> connections = new Stack<>();
+    private String url;
+    private static Stack<Connection> connections;
     private static Pool pool;
     private static final Logger LOGGER = Logger.getLogger("package dataAcess");
 
@@ -31,6 +32,7 @@ public class Pool {
     public Pool() {
 
         configFile = ResourceBundle.getBundle("config.config");
+        url = configFile.getString("URL");
         db_user = configFile.getString("DB_USER");
         db_pass = configFile.getString("DB_PASSWORD");
 
@@ -48,6 +50,7 @@ public class Pool {
         if (pool == null) {
             LOGGER.info("Instancing Pool.");
             pool = new Pool();
+            connections = new Stack<>();
         }
         return pool;
     }
@@ -66,8 +69,6 @@ public class Pool {
         //Checks if the stack is empty
         if (connections.isEmpty()) {
             try {
-                // DB URL with assigned SSH port
-                String url = configFile.getString("URL");
                 //Creates a new connection
                 con = DriverManager.getConnection(url, db_user, db_pass);
                 LOGGER.info("First Pool connection.");

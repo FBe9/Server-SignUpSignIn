@@ -50,7 +50,7 @@ public class DAO implements Signable {
         final String SELECTEMAIL = "SELECT * FROM public.res_users WHERE login = ?";
         final String INSERTPARTNER = "INSERT INTO public.res_partner(company_id, name, street, zip, city, email, active, create_date) VALUES('1',  ?,  ?,  ?,  ?,  ?, true, now())";
         final String SELECTPARTNER = "SELECT id, create_date FROM public.res_partner WHERE id IN (SELECT MAX(id) FROM public.res_partner);";
-        final String INSERTUSER = "INSERT INTO public.res_users(company_id, partner_id, active, login, password, notification_type, create_date) VALUES('1', ?, True, ?, ?, 'email', ?)";
+        final String INSERTUSER = "INSERT INTO public.res_users(company_id, partner_id, active, login, password, create_date) VALUES('1', ?, True, ?, ?, ?)";
         final String SELECTUSER = "SELECT MAX(id) FROM public.res_users";
         final String INSERTGROUP_USER_REL = "INSERT INTO public.res_groups_users_rel(gid, uid) VALUES ('1', ?),('7', ?),('8', ?),('9', ?)";
         final String INSERTGROUP_USER_REL_ADMIN = "INSERT INTO public.res_groups_users_rel(gid, uid) VALUES ('1', ?),('2', ?),('3', ?),('4', ?),('7', ?),('8', ?),('9', ?)";
