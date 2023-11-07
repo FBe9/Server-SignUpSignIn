@@ -27,12 +27,14 @@ public class DAO implements Signable {
 
     private Connection con;
     private PreparedStatement stmt;
-    private Pool connection;
+    private PoolCreatable connection;
     private ResultSet rs;
     private static final Logger LOGGER = Logger.getLogger("package dataAcess");
 
     public DAO() {
-        this.connection = Pool.getPool();
+        if(connection == null){
+           connection = PoolFactory.getPool();
+        }
     }
 
     /**

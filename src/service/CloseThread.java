@@ -1,9 +1,11 @@
 package service;
 
 import dataAccess.Pool;
+import dataAccess.PoolFactory;
 import static java.lang.System.exit;
 import java.util.Scanner;
 import java.util.logging.Logger;
+import dataAccess.PoolCreatable;
 
 /**
  * This class represents a thread responsible of shutting down the server.
@@ -37,8 +39,7 @@ public class CloseThread extends Thread {
         if (userInput == 1) {
             logger.info("Server is shutting down.");
             // Close the connections of the pool
-            Pool pool = Pool.getPool();
-            pool.closeAllConnections();
+            PoolFactory.getPool().closeAllConnections();
             exit(0);
         }
 
