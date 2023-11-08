@@ -37,6 +37,14 @@ public class Pool implements PoolCreatable {
 
     }
 
+    /**
+     * Starts and connects an SSH session to connect to the remote DB server.
+     * Retrieves a database connection from the pool. If the pool is empty, a
+     * new connection is created.
+     *
+     * @return A database connection.
+     * @throws exceptions.ServerErrorException
+     */
     @Override
     public synchronized Connection takeConnection() throws ServerErrorException {
         Connection con = null;
@@ -61,6 +69,11 @@ public class Pool implements PoolCreatable {
         return con;
     }
 
+    /**
+     * Returns a database connection to the pool for reuse.
+     *
+     * @param con The database connection to be returned to the pool.
+     */
     @Override
     public synchronized void returnConnection(Connection con) {
         //Checks if connection received is null
