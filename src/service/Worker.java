@@ -1,5 +1,6 @@
 package service;
 
+import dataAccess.SignableFactory;
 import exceptions.EmailExistsException;
 import exceptions.LoginCredentialException;
 import exceptions.ServerErrorException;
@@ -32,11 +33,9 @@ public class Worker extends Thread {
      * implementation.
      *
      * @param client The client's socket connection.
-     * @param signable DAO implementation of the Signable interface.
      */
-    public Worker(Socket client, Signable signable) {
+    public Worker(Socket client) {
         this.client = client;
-        this.signable = signable;
     }
 
     /**
@@ -54,9 +53,9 @@ public class Worker extends Thread {
 
             // Takes the recieved message to make a SignUp or a SignIn
             if (responseRequest.getMessage() == Message.SIGNUP) {
-                responseRequest.setUser(signable.signUp(responseRequest.getUser()));
+                responseRequest.setUser(SignableFactory.getSignable().signUp(responseRequest.getUser()));
             } else {
-                responseRequest.setUser(signable.signIn(responseRequest.getUser()));
+                responseRequest.setUser(SignableFactory.getSignable().signIn(responseRequest.getUser()));
 
             }
             // If there isn't an error, establishes the OK response
