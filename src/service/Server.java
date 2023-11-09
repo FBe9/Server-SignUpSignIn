@@ -1,7 +1,7 @@
 package service;
 
 import dataAccess.SignableFactory;
-import exceptions.ServerMaxCapacityException;
+import exceptions.ServerErrorException;
 import interfaces.Signable;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -76,8 +76,8 @@ public class Server {
             logger.info("No connections avaliable.");
             // If the maximun capacity has been reached. Seeds a exception
             try {
-                throw new ServerMaxCapacityException();
-            } catch (ServerMaxCapacityException ex) {
+                throw new ServerErrorException();
+            } catch (ServerErrorException ex) {
                 try {
                     // Gets an ObjectOutputStream to write.
                     ObjectOutputStream write = new ObjectOutputStream(client.getOutputStream());
@@ -85,6 +85,7 @@ public class Server {
                     ResponseRequest response = new ResponseRequest(null, Message.SERVER_CAPACITY_ERROR);
                     // Sends the response to the client.
                     write.writeObject(response);
+                    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException ex1) {
                     Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex1);
                 }
@@ -105,7 +106,7 @@ public class Server {
      * Initiates the thread in change of closing the server.
      */
     public static void waitClose() {
-        logger.info("Closing the server.");
+        logger.info("Initializing the thread that waits for closing the server");
         CloseThread close = new CloseThread();
         close.start();
     }
