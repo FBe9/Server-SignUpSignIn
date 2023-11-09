@@ -28,6 +28,12 @@ public class Server {
     private static final Logger logger = Logger.getLogger(Worker.class.getName());
 
     /**
+     * Default empty constructor.
+     */
+    public Server() {
+    }
+
+    /**
      * Main method for the Server.
      *
      * @param args the command line arguments
@@ -64,10 +70,8 @@ public class Server {
         // Gets from a property file the maximun connections
         if (connections < Integer.parseInt(ResourceBundle.getBundle("config.config").getString("MAX_CONNECTIONS"))) {
             logger.info("There is a connection avaliable.");
-            // Get a signable
-            Signable signable = (Signable) SignableFactory.getSignable();
             // Initialize the worker
-            Worker worker = new Worker(client, signable);
+            Worker worker = new Worker(client);
             worker.start();
             // Increments the connections' counter
             connections++;

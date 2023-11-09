@@ -11,11 +11,17 @@ import interfaces.Signable;
 public class SignableFactory {
 
     /**
+     * Default empty constructor.
+     */
+    public SignableFactory() {
+    }
+
+    /**
      * Returns an instance of a class that implements the Signable interface.
      *
      * @return a Signable object with the DAO implementation.
      */
-    public static synchronized Signable getSignable() {
+    public static Signable getSignable() {
         return new DAO();
     }
 }

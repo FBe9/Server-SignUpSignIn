@@ -8,6 +8,12 @@ package dataAccess;
  */
 public class PoolFactory {
 
+    /**
+     * Default empty constructor.
+     */
+    public PoolFactory() {
+    }
+
     private static Pool pool;
 
     /**

@@ -30,7 +30,9 @@ public class DAO implements Signable {
     private PoolCreatable connection;
     private ResultSet rs;
     private static final Logger LOGGER = Logger.getLogger("package dataAcess");
-
+    /**
+     * Constructor to instance the DAO
+     */
     public DAO() {
         if(connection == null){
            connection = PoolFactory.getPool();
